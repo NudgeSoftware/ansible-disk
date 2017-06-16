@@ -1,0 +1,6 @@
+---
+- name: touch /var/lock/subsys/local
+  file:
+    path: /var/lock/subsys/local
+    state: touch
+  changed_when: False

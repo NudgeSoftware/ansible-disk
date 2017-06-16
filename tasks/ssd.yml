@@ -1,0 +1,18 @@
+- name: enable noop schedule on ssd disks
+  shell: echo noop > /sys/block/{{block}}/queue/scheduler
+  args:
+    executable: /bin/bash
+  when: item.ssd|d(ssd)|d(false)
+  notify: touch /var/lock/subsys/local
+  
+- name: tell CentOS that disk is ssd
+  shell: echo 0 > /sys/class/block/{{block}}/queue/rotational
+  args:
+    executable: /bin/bash
+  when: item.ssd|d(ssd)|d(false)
+
+- name: set read_ahead_kb to 8k for ssd disk
+  shell: echo 8 > /sys/class/block/{{block}}/queue/read_ahead_kb
+  args:
+    executable: /bin/bash
+  when: item.ssd|d(ssd)|d(false)
