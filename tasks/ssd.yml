@@ -11,8 +11,3 @@
     executable: /bin/bash
   when: item.ssd|d(ssd)|d(false)
 
-- name: set read_ahead_kb to 8k for ssd disk
-  shell: echo 8 > /sys/class/block/{{block}}/queue/read_ahead_kb
-  args:
-    executable: /bin/bash
-  when: item.ssd|d(ssd)|d(false)
