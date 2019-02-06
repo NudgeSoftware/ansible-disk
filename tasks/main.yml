@@ -96,12 +96,12 @@
   with_items: '{{ disk_additional_disks }}'
   tags: ['disk']
 
-- include: ssd.yml block={{item}}
+- include_tasks: ssd.yml block={{item}}
   with_items: 
     - sda
     - sdb
   tags: ['disk']
 
-- include: ssd.yml block={{item.disk|regex_replace('/dev/(.*)', '\\1')}}
+- include_tasks: ssd.yml block={{item.disk|regex_replace('/dev/(.*)', '\\1')}}
   with_items: '{{ disk_additional_disks }}'
   tags: ['disk']
