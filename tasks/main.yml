@@ -10,7 +10,7 @@
   package:
     name: "{{ item }}"
     state: present
-  with_items: "{{ additional_fs_utils|default([]) }}"
+  loop: "{{ additional_fs_utils|default([]) }}"
   when: additional_fs_utils is defined
   tags: ['disk', 'pkgs']
 
@@ -26,7 +26,7 @@
   args:
     creates: '{{ item.disk }}1'
     executable: '/bin/bash'
-  with_items: '{{ disk_additional_disks }}'
+  loop: '{{ disk_additional_disks }}'
   register: disk_offset
   tags: ['disk']
 
@@ -40,7 +40,7 @@
   args:
     creates: '{{ item.disk }}1'
     executable: '/bin/bash'
-  with_items: '{{ disk_additional_disks }}'
+  loop: '{{ disk_additional_disks }}'
   tags: ['disk']
 
 - name: "Create filesystem on the first partition"
@@ -49,12 +49,12 @@
     force: '{{ item.force|d(omit) }}'
     fstype: '{{ item.fstype }}'
     opts: '{{ item.fsopts|d(omit) }}'
-  with_items: '{{ disk_additional_disks }}'
+  loop: '{{ disk_additional_disks }}'
   tags: ['disk']
 
 - name: "Disable periodic fsck on ext3 or ext4 formatted disks"
   shell: tune2fs -c0 -i0 {{ item.disk }}1
-  with_items: '{{ disk_additional_disks }}'
+  loop: '{{ disk_additional_disks }}'
   when: "disk_additional_disks and ( item.fstype == 'ext4' or item.fstype == 'ext3' ) and item.disable_periodic_fsck|default(false)|bool"
   tags: ['disk']
 
@@ -64,13 +64,13 @@
     owner: '{{ item.user | default("root") }}'
     group: '{{ item.group | default("root") }}'
     state: directory
-  with_items: '{{ disk_additional_disks }}'
+  loop: '{{ disk_additional_disks }}'
   tags: ['disk']
 
 - name: "Get UUID for partition"
   command: blkid -s UUID -o value "{{ item.disk }}1"
   register: disk_blkid
-  with_items: '{{ disk_additional_disks }}'
+  loop: '{{ disk_additional_disks }}'
   changed_when: False
   tags: ['disk']
 
@@ -82,9 +82,7 @@
     passno: '0'
     src: 'UUID={{ item.1.stdout }}'
     state: '{{ item.0.mount_state|d("mounted") }}'
-  with_together:
-    - '{{ disk_additional_disks }}'
-    - '{{ disk_blkid.results }}'
+  loop: "{{ disk_additional_disks|zip(disk_blkid.results)|list }}"
   tags: ['disk']
 
 - name: "Ensure the permissions are set correctly"
@@ -93,15 +91,20 @@
     owner: '{{ item.user | default("root") }}'
     group: '{{ item.group | default("root") }}'
     state: directory
-  with_items: '{{ disk_additional_disks }}'
+  loop: '{{ disk_additional_disks }}'
   tags: ['disk']
 
-- include_tasks: ssd.yml block={{item}}
-  with_items: 
+- include_tasks: ssd.yml
+  vars:
+    block: "{{item}}"
+  loop: 
     - sda
     - sdb
   tags: ['disk']
 
-- include_tasks: ssd.yml block={{item.disk|regex_replace('/dev/(.*)', '\\1')}}
-  with_items: '{{ disk_additional_disks }}'
+- include_tasks: ssd.yml
+  vars:
+    block: |
+      {{item.disk|regex_replace('/dev/(.*)', '\\1')}}
+  loop: '{{ disk_additional_disks }}'
   tags: ['disk']
