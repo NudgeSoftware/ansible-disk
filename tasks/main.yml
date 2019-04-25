@@ -104,7 +104,6 @@
 
 - include_tasks: ssd.yml
   vars:
-    block: |
-      {{item.disk|regex_replace('/dev/(.*)', '\\1')}}
+    block: "{{item.disk|regex_replace('^/dev/', '')}}"
   loop: '{{ disk_additional_disks }}'
   tags: ['disk']
