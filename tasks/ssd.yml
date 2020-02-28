@@ -1,9 +1,9 @@
-- name: enable noop schedule on ssd disks
-  shell: echo noop > /sys/block/{{block}}/queue/scheduler
-  args:
-    executable: /bin/bash
-  when: item.ssd|d(ssd)|d(false)
-  notify: touch /var/lock/subsys/local
+# - name: enable noop schedule on ssd disks
+#   shell: echo noop > /sys/block/{{block}}/queue/scheduler
+#   args:
+#     executable: /bin/bash
+#   when: item.ssd|d(ssd)|d(false)
+#   notify: touch /var/lock/subsys/local
   
 - name: tell CentOS that disk is ssd
   shell: echo 0 > /sys/class/block/{{block}}/queue/rotational
